@@ -1,0 +1,16 @@
+# Copy to dbt/profiles.yml (git-ignored, since it's effectively
+# connection config) or point DBT_PROFILES_DIR at this directory after
+# copying. Values are read from the same .env used by docker-compose,
+# via dbt's env_var() so no credentials are hardcoded here.
+eeg_warehouse:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_WAREHOUSE_HOST') }}"
+      port: "{{ env_var('POSTGRES_WAREHOUSE_PORT') | as_number }}"
+      user: "{{ env_var('POSTGRES_WAREHOUSE_USER') }}"
+      password: "{{ env_var('POSTGRES_WAREHOUSE_PASSWORD') }}"
+      dbname: "{{ env_var('POSTGRES_WAREHOUSE_DB') }}"
+      schema: public
+      threads: 4
