@@ -10,7 +10,10 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
   volumes:
-    - ../orchestration/dags:/opt/airflow/dags
+    # Resolved relative to --project-directory (repo root), not this
+    # file's own folder -- see docs/PROJECT_PLAN.md §10 for the exact
+    # invocation this depends on.
+    - ./orchestration/dags:/opt/airflow/dags
     - airflow-logs:/opt/airflow/logs
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
