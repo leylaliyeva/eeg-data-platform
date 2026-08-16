@@ -52,10 +52,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+A `Makefile` wraps the commands below — `make help` lists every target.
+
 ## Starting infrastructure
 
 ```bash
-docker compose -f infra/docker-compose.yml --project-directory . up -d
+make up
+# equivalent to: docker compose -f infra/docker-compose.yml --project-directory . up -d
 ```
 
 | Service | URL | Login |
@@ -67,23 +70,20 @@ docker compose -f infra/docker-compose.yml --project-directory . up -d
 Check every service reached a healthy state:
 
 ```bash
-docker compose -f infra/docker-compose.yml --project-directory . ps
+make ps
 ```
 
 ## Stopping infrastructure
 
 ```bash
-# Stop, keep data:
-docker compose -f infra/docker-compose.yml --project-directory . down
-
-# Stop and wipe all data (fresh start):
-docker compose -f infra/docker-compose.yml --project-directory . down -v
+make down     # stop, keep data
+make destroy  # stop and wipe all data (fresh start)
 ```
 
 ## Running tests
 
 ```bash
-pytest
+make test
 ```
 
 ## Project structure

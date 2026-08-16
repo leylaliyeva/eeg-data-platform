@@ -236,3 +236,5 @@ docker compose -f infra/docker-compose.yml --project-directory . down
 # Stop and wipe all data (fresh start):
 docker compose -f infra/docker-compose.yml --project-directory . down -v
 ```
+
+A `Makefile` wraps these (`make install`, `make up`, `make ps`, `make test`, `make down`, `make destroy`) — run `make help` for the full list.
