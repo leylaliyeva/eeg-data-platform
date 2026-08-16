@@ -1,0 +1,40 @@
+name: eeg-data-platform
+
+services:
+  postgres-warehouse:
+    image: postgres:16.6
+    container_name: eeg-postgres-warehouse
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_WAREHOUSE_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_WAREHOUSE_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_WAREHOUSE_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-warehouse-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_WAREHOUSE_USER} -d ${POSTGRES_WAREHOUSE_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-airflow:
+    image: postgres:16.6
+    container_name: eeg-postgres-airflow
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_AIRFLOW_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AIRFLOW_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_AIRFLOW_DB}
+    volumes:
+      - postgres-airflow-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AIRFLOW_USER} -d ${POSTGRES_AIRFLOW_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-warehouse-data:
+  postgres-airflow-data:
