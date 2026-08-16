@@ -23,14 +23,24 @@ Status: Phase 0 (infrastructure skeleton). This document is written to be detail
 |---|---|---|
 | **Origin** | Open platform for sharing neuroimaging data (BIDS-formatted), including EEG studies from many independent research groups | Repository for physiological signal data, including EEG studies (resting-state, motor imagery, clinical recordings) |
 | **Format** | BIDS-structured: raw EEG signal files (commonly EDF, BDF, BrainVision, or EEGLAB `.set`/`.fdt` depending on the study) plus TSV/JSON metadata (`participants.tsv`, `channels.tsv`, `events.tsv`, `dataset_description.json`) | Not uniformly BIDS-structured; formats and metadata layout vary more by study than on OpenNeuro |
-| **Volume estimate** | A single EEG recording commonly ranges from roughly 1 MB to a few hundred MB depending on channel count, duration, and sampling rate; a full study with dozens of subjects can total from a few hundred MB to several GB. *These are general estimates based on typical EEG file characteristics, not measurements of specific chosen datasets — they will be confirmed once specific studies are selected in Phase 1.* | Same general order of magnitude; some PhysioNet EEG collections (e.g. large clinical corpora) can be substantially larger — size varies far more by study than on OpenNeuro. |
+| **Volume estimate** | Ranges roughly 1 MB–several GB per study platform-wide depending on channel count, duration, sampling rate, and subject count; the specific study selected for this project (`ds002778`) is a verified 0.53 GB — see below. | Same general order of magnitude platform-wide, and varies more by study than on OpenNeuro; the specific study selected (`eegmat`) is a verified 0.175 GB — see below. |
 | **Update frequency** | Irregular — updated as researchers publish new studies, no fixed schedule | Same — irregular, publication-driven |
-| **Sample record (illustrative only)** | `participants.tsv`: `participant_id  age  sex  group` / `sub-01  25  F  control` — illustrates the general BIDS convention, **not copied from a verified live file** | Format varies by study; will be documented once a specific PhysioNet study is selected |
+| **Sample record** | `participants.tsv` columns for `ds002778`, verified from the live file: `participant_id, age, gender, hand, MMSE, NAART, disease_duration, rl_deficits, notes` | Verified: `eegmat` groups 36 subjects into performance cohorts `G`/`B`, with a baseline and task EDF recording per subject |
 | **Known quality issues** | Inconsistent completeness of optional metadata fields across studies; inconsistent channel-naming conventions across recording hardware/labs; occasional missing `events.tsv` | Same categories of issue, generally less standardized than OpenNeuro since BIDS compliance isn't a requirement |
 
 Because this project treats ingestion as a **batch pull of a defined set of studies**, not a continuous sync, "update frequency" mainly matters for deciding when to re-run ingestion for a given study — not for pipeline scheduling (see §6).
 
-**Not yet decided / first task of Phase 1:** which specific study or studies will actually be ingested (a small, bounded subset — see §9), the exact programmatic access method for each source (REST API, bulk S3-style sync, or another documented method), and confirmation that the chosen studies are properly de-identified and licensed for non-clinical educational use.
+**Datasets selected for this project:** `ds002778` (OpenNeuro) and `eegmat` (PhysioNet) — chosen after verifying file counts, sizes, and metadata directly against OpenNeuro's public S3 bucket and PhysioNet's dataset pages, not assumed from search results. Compared against 5 other real candidates in [DATASET_SELECTION.md](DATASET_SELECTION.md), which also has the full reasoning for this pairing.
+
+| | `ds002778` (OpenNeuro) | `eegmat` (PhysioNet) |
+|---|---|---|
+| Subjects | 31 (16 healthy, 15 Parkinson's) | 36 (24/12 performance groups) |
+| Format | BDF, 40 channels, 512 Hz | EDF, 23 channels, 500 Hz |
+| Raw size | 0.53 GB | 0.175 GB |
+| License | CC0 | ODC-BY 1.0 |
+| Structure | BIDS; has `events.tsv`; some subjects have on/off-medication sessions | Not BIDS; 2 recordings/subject (baseline + task) |
+
+Combined raw footprint: ≈720 MB. **Still open, first task of Phase 1:** the exact programmatic access method for each source, and formal confirmation that both datasets meet the de-identification/licensing bar beyond their published declarations.
 
 ---
 
@@ -187,7 +197,7 @@ Airflow is used strictly as an orchestrator here — DAGs schedule and sequence 
 | Phase | Scope | Definition of Done |
 |---|---|---|
 | **Phase 0** (current) | Repository, project structure, Docker Compose infrastructure (Postgres warehouse, Postgres Airflow metadata DB, Airflow, MinIO), central config, this plan document, README. No pipeline logic. | See the instructor-issued Phase 0 Definition of Done: remote repo pushed to `main`, `docs/PROJECT_PLAN.md` complete, README accurate and followed from scratch, structure matches the plan, fresh-clone `docker compose up` reaches healthy on every service, teardown/restart preserves state, `.env.example` complete with no real secrets committed, dependencies pinned, commit history incremental. |
-| **Phase 1** *(proposed)* | Ingestion: implement OpenNeuro and/or PhysioNet ingestion as Airflow DAGs, pulling a defined bounded subset of studies into MinIO, idempotently. | Automated, idempotent ingestion of at least one source; ingestion inventory logged; unit tests with mocked HTTP responses; no manual download steps. |
+| **Phase 1** *(proposed)* | Ingestion: implement `ds002778` (OpenNeuro) and/or `eegmat` (PhysioNet) ingestion as Airflow DAGs, pulling both datasets into MinIO, idempotently (see [DATASET_SELECTION.md](DATASET_SELECTION.md)). | Automated, idempotent ingestion of at least one source; ingestion inventory logged; unit tests with mocked HTTP responses; no manual download steps. |
 | **Phase 2** *(proposed)* | Raw storage & cataloging: solidify raw-layer structure/lineage, add the second source, document bucket/object-key conventions. | Both sources ingested; lineage queryable; conventions documented. |
 | **Phase 3** *(proposed)* | Transformation & standardization: parse EEG files (introducing the one new EEG-parsing library), map per-study metadata into the common data model, compute derived signal statistics into Postgres staging. | Transformation logic covered by unit tests; staging tables populated from real ingested data. |
 | **Phase 4** *(proposed)* | Curated layer & orchestrated pipeline: dbt staging→curated models, data quality tests (§7) wired into `transform_dag`, full ingest→transform→test→publish chain runs end-to-end via Airflow. | dbt tests pass; curated tables populated; full pipeline runs via Airflow, not manual steps. |
@@ -204,7 +214,7 @@ Phases 1–5 are this student's proposed roadmap; per the assignment, the instru
 | Local machine disk/compute limits vs. EEG file sizes | Bound ingestion to a small, explicitly chosen subset of studies/subjects (decided in Phase 1) — not full repository mirrors |
 | Exact OpenNeuro/PhysioNet programmatic access methods not yet confirmed | Verify and document the access method as the first task of Phase 1, before writing ingestion code |
 | Format/metadata heterogeneity across studies could break the common data model's assumptions | Data quality tests (§7) surface violations early; the data model may be revised in Phase 3 once real metadata is inspected |
-| Dataset licensing/de-identification not yet confirmed | Only select datasets in Phase 1 that are explicitly public, de-identified, and licensed for non-clinical educational use; document the license per chosen study |
+| Dataset licensing/de-identification | Resolved for the two datasets selected — `ds002778` is CC0, `eegmat` is ODC-BY 1.0, both publicly de-identified per their publishers (see [DATASET_SELECTION.md](DATASET_SELECTION.md)); the same check applies to any dataset added later |
 | Airflow's local resource footprint (webserver + scheduler + 2x Postgres + MinIO) is heavy for a laptop | LocalExecutor only (no Celery/Redis/worker); pinned lightweight images; documented `docker compose down -v` for full cleanup |
 | *Assumption:* local Docker execution is the target environment (no cloud budget assumed) | Architecture (S3-compatible MinIO, standard Postgres, containerized Airflow) is portable to a cloud VM later without a redesign |
 | *Assumption:* grading values a working, understandable, bounded-scope pipeline over raw data volume | Scope is deliberately kept small throughout |
