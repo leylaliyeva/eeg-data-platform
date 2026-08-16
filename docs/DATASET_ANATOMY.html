@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dataset Anatomy</title>
+<style>
+  :root {
+    --bg: #F1F4F1;
+    --surface: #FBFCFA;
+    --surface-2: #E7ECE7;
+    --ink: #16211D;
+    --ink-muted: #4E5F58;
+    --border: #D7DED8;
+    --accent: #1B7A5E;
+    --accent-ink: #FFFFFF;
+    --ds1: #1B7A5E;
+    --ds1-soft: #E4EFE9;
+    --ds2: #C97A2B;
+    --ds2-soft: #F3E7D8;
+    --warn: #B5433D;
+    --warn-soft: #F3E1DF;
+    --shadow: 0 1px 2px rgba(22,33,29,0.07), 0 10px 28px rgba(22,33,29,0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1613;
+      --surface: #141F1B;
+      --surface-2: #1B2822;
+      --ink: #E7ECE8;
+      --ink-muted: #9FB0A8;
+      --border: #28352F;
+      --accent: #3DAE8B;
+      --accent-ink: #06120E;
+      --ds1: #3DAE8B;
+      --ds1-soft: #17281F;
+      --ds2: #E0A056;
+      --ds2-soft: #2B2318;
+      --warn: #E07670;
+      --warn-soft: #2B1A18;
+      --shadow: 0 1px 2px rgba(0,0,0,0.45), 0 10px 28px rgba(0,0,0,0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0E1613;
+    --surface: #141F1B;
+    --surface-2: #1B2822;
+    --ink: #E7ECE8;
+    --ink-muted: #9FB0A8;
+    --border: #28352F;
+    --accent: #3DAE8B;
+    --accent-ink: #06120E;
+    --ds1: #3DAE8B;
+    --ds1-soft: #17281F;
+    --ds2: #E0A056;
+    --ds2-soft: #2B2318;
+    --warn: #E07670;
+    --warn-soft: #2B1A18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.45), 0 10px 28px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .display {
+    font-family: "Avenir Next", "Century Gothic", Futura, ui-sans-serif, sans-serif;
+    text-wrap: balance;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  code, .mono, .tree { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; }
+  .stat, td.num { font-variant-numeric: tabular-nums; }
+
+  a { color: var(--accent); }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header.hero { border-bottom: 1px solid var(--border); background: var(--surface); }
+  .hero-inner { max-width: 1100px; margin: 0 auto; padding: 3rem 1.75rem 2.4rem; }
+
+  .eyebrow {
+    font-family: "Avenir Next", "Century Gothic", Futura, ui-sans-serif, sans-serif;
+    text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem;
+    color: var(--accent); font-weight: 700; margin: 0 0 0.9rem;
+  }
+
+  h1.title { font-size: clamp(2rem, 4.2vw, 2.9rem); line-height: 1.08; margin: 0 0 0.9rem; max-width: 18ch; }
+
+  .dek { font-family: Georgia, serif; font-style: italic; color: var(--ink-muted); font-size: 1.1rem; max-width: 52ch; margin: 0 0 1.6rem; }
+
+  .source-strip { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .chip {
+    font-family: "Avenir Next", "Century Gothic", sans-serif;
+    font-size: 0.78rem; font-weight: 700; padding: 0.35rem 0.8rem;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2);
+  }
+  .chip.ds1 { color: var(--ds1); border-color: var(--ds1); }
+  .chip.ds2 { color: var(--ds2); border-color: var(--ds2); }
+
+  .page {
+    max-width: 1100px; margin: 0 auto; padding: 2.6rem 1.75rem 5rem;
+    display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 3.2rem; align-items: start;
+  }
+
+  nav.toc { position: sticky; top: 2rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--border); }
+  nav.toc a {
+    display: block; padding: 0.4rem 0 0.4rem 0.9rem; margin-left: -2px;
+    border-left: 2px solid transparent; color: var(--ink-muted); text-decoration: none;
+    font-family: "Avenir Next", "Century Gothic", sans-serif; font-size: 0.86rem;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-left-color: var(--accent); }
+  nav.toc .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 0.4rem; }
+
+  main { min-width: 0; max-width: 70ch; }
+  section { margin: 0 0 4rem; scroll-margin-top: 1.5rem; }
+  section:last-of-type { margin-bottom: 0; }
+
+  .kicker {
+    font-family: "Avenir Next", "Century Gothic", sans-serif; text-transform: uppercase;
+    letter-spacing: 0.12em; font-size: 0.72rem; color: var(--accent); font-weight: 700; margin: 0 0 0.6rem;
+  }
+  h2 { font-size: 1.6rem; margin: 0 0 1rem; }
+  h3 { font-size: 1.15rem; margin: 1.9rem 0 0.5rem; }
+  h4 { font-size: 0.98rem; margin: 1.4rem 0 0.5rem; color: var(--ink-muted); font-family: "SF Mono", ui-monospace, monospace; font-weight: 700; }
+  p { margin: 0 0 1.05rem; }
+  p:last-child { margin-bottom: 0; }
+  .lede { font-size: 1.05rem; color: var(--ink-muted); }
+  ul.plain, ol.plain { padding-left: 1.2rem; margin: 0 0 1.05rem; }
+  ul.plain li, ol.plain li { margin-bottom: 0.5rem; }
+  strong { color: var(--ink); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.3rem 1.4rem; box-shadow: var(--shadow); }
+
+  .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.1rem; margin: 1.4rem 0; }
+
+  .source-card h4 { color: var(--ink); font-family: "Avenir Next", "Century Gothic", sans-serif; font-size: 1.05rem; margin: 0 0 0.7rem; }
+  .source-card dl { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.9rem; font-size: 0.9rem; margin: 0; }
+  .source-card dt { color: var(--ink-muted); font-family: "Avenir Next", "Century Gothic", sans-serif; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 0.1rem; }
+  .source-card dd { margin: 0; }
+
+  /* dataset section framing */
+  .ds-block { border-left: 3px solid var(--ds); padding-left: 1.3rem; }
+  .ds-block.ds1 { --ds: var(--ds1); }
+  .ds-block.ds2 { --ds: var(--ds2); }
+
+  .ds-head { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+  .ds-id { font-family: "SF Mono", ui-monospace, monospace; font-size: 0.85rem; padding: 0.15rem 0.6rem; border-radius: 6px; background: var(--ds-soft); color: var(--ds); font-weight: 700; }
+  .ds-block.ds1 .ds-id { background: var(--ds1-soft); }
+  .ds-block.ds2 .ds-id { background: var(--ds2-soft); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; background: var(--surface); font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  thead th {
+    font-family: "Avenir Next", "Century Gothic", sans-serif; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--ink-muted); background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td .col, th .col { font-family: "SF Mono", ui-monospace, monospace; font-size: 0.84rem; color: var(--ink); }
+
+  .example-row {
+    font-family: "SF Mono", ui-monospace, monospace; font-size: 0.8rem; color: var(--ink-muted);
+    background: var(--surface-2); border-radius: 8px; padding: 0.6rem 0.8rem; margin: 0.8rem 0 0;
+    overflow-x: auto; white-space: pre;
+  }
+
+  .note {
+    border-left: 3px solid var(--ink-muted); background: var(--surface-2); padding: 0.85rem 1.05rem;
+    border-radius: 0 8px 8px 0; font-size: 0.92rem; margin: 1.2rem 0;
+  }
+  .note p { margin: 0; }
+  .note p + p { margin-top: 0.5rem; }
+
+  .flag {
+    border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 0.9rem 1.1rem;
+    border-radius: 0 8px 8px 0; font-size: 0.92rem; margin: 1.2rem 0;
+  }
+  .flag p { margin: 0; }
+  .flag p + p { margin-top: 0.5rem; }
+  .flag .flag-label {
+    font-family: "Avenir Next", "Century Gothic", sans-serif; text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.68rem; font-weight: 700; color: var(--warn); display: block; margin-bottom: 0.35rem;
+  }
+
+  /* remember list */
+  .remember { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .remember li {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; box-shadow: var(--shadow);
+  }
+  .remember .tag {
+    font-family: "SF Mono", ui-monospace, monospace; font-size: 0.72rem; font-weight: 700;
+    padding: 0.2rem 0.5rem; border-radius: 5px; white-space: nowrap; height: fit-content;
+  }
+  .remember .tag.ds1 { color: var(--ds1); background: var(--ds1-soft); }
+  .remember .tag.ds2 { color: var(--ds2); background: var(--ds2-soft); }
+  .remember .tag.both { color: var(--warn); background: var(--warn-soft); }
+  .remember p { margin: 0; font-size: 0.93rem; }
+
+  footer { max-width: 1100px; margin: 0 auto; padding: 2rem 1.75rem 3rem; border-top: 1px solid var(--border); color: var(--ink-muted); font-size: 0.85rem; }
+
+  @media (max-width: 820px) {
+    .page { grid-template-columns: 1fr; }
+    nav.toc { position: static; overflow-x: auto; padding-bottom: 0.5rem; }
+    nav.toc ol { display: flex; gap: 0.3rem; border-left: none; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    nav.toc a { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; padding: 0.3rem 0.7rem; }
+    nav.toc a:hover, nav.toc a:focus-visible { border-bottom-color: var(--accent); }
+    main { max-width: 100%; }
+    .remember li { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">EEG Research Data Platform &middot; dataset reference</p>
+    <h1 class="title">Dataset Anatomy</h1>
+    <p class="dek">Everything actually inside the two datasets this platform ingests: who published them, what every column means, and what's easy to miss. General EEG/BIDS concepts live in the companion <strong>EEG Field Guide</strong> &mdash; this page only covers <span class="mono">ds002778</span> and <span class="mono">eegmat</span>, verified directly against the source files, not summarized from a search result.</p>
+    <div class="source-strip">
+      <span class="chip ds1">ds002778 &middot; OpenNeuro</span>
+      <span class="chip ds2">eegmat &middot; PhysioNet</span>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="toc" aria-label="Table of contents">
+    <ol>
+      <li><a href="#sources"><span class="dot" style="background:var(--accent)"></span>Who runs the sources</a></li>
+      <li><a href="#ds002778"><span class="dot" style="background:var(--ds1)"></span>ds002778, column by column</a></li>
+      <li><a href="#eegmat"><span class="dot" style="background:var(--ds2)"></span>eegmat, column by column</a></li>
+      <li><a href="#remember"><span class="dot" style="background:var(--warn)"></span>Things to remember</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="sources">
+      <p class="kicker">Provenance</p>
+      <h2>Who runs the sources</h2>
+      <p>Both platforms are academically operated, not commercial products &mdash; worth knowing because it explains the citation etiquette and lack of SLA either one offers.</p>
+      <div class="pair">
+        <div class="card source-card">
+          <h4>OpenNeuro</h4>
+          <dl>
+            <dt>Operated by</dt><dd>Stanford Center for Reproducible Neuroscience</dd>
+            <dt>Led by</dt><dd>Russ Poldrack &amp; Chris Gorgolewski</dd>
+            <dt>Since</dt><dd>2010, originally as "OpenfMRI"</dd>
+            <dt>Structure</dt><dd>BIDS required for every dataset</dd>
+          </dl>
+        </div>
+        <div class="card source-card">
+          <h4>PhysioNet</h4>
+          <dl>
+            <dt>Operated by</dt><dd>MIT Laboratory for Computational Physiology</dd>
+            <dt>Funded by</dt><dd>NIH / NIBIB</dd>
+            <dt>Since</dt><dd>1999, founded by Mark &amp; Moody (MIT), Goldberger (Beth Israel Deaconess), Stanley (Boston University)</dd>
+            <dt>Structure</dt><dd>No fixed convention &mdash; varies per contributor</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section id="ds002778">
+      <p class="kicker">Dataset 1 of 2</p>
+      <div class="ds-block ds1">
+        <div class="ds-head"><h2 style="margin:0">UCSD Resting-State EEG</h2><span class="ds-id">ds002778</span></div>
+        <p class="lede">Parkinson's disease patients and healthy controls, recorded at UC San Diego, curated onto OpenNeuro by Alex Rockhill (University of Oregon). License: CC0. DOI: <span class="mono">10.18112/openneuro.ds002778.v1.0.4</span>.</p>
+
+        <h3>participants.tsv</h3>
+        <p>Every column definition below is copied from the dataset's own <span class="mono">participants.json</span> sidecar &mdash; not inferred.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><span class="col">participant_id</span></td><td>Unique participant identifier</td></tr>
+              <tr><td><span class="col">age</span></td><td>Age at time of testing, in years</td></tr>
+              <tr><td><span class="col">gender</span></td><td>F = female, M = male</td></tr>
+              <tr><td><span class="col">hand</span></td><td>R = right, L = left, A = ambidextrous</td></tr>
+              <tr><td><span class="col">MMSE</span></td><td>Mini-Mental State Exam score &mdash; &gt;24 normal, 19&ndash;23 mild impairment, 10&ndash;18 moderate, &lt;9 severe</td></tr>
+              <tr><td><span class="col">NAART</span></td><td>North American Adult Reading Test, scored like an IQ test (~100-point scale)</td></tr>
+              <tr><td><span class="col">disease_duration</span></td><td>Years since Parkinson's diagnosis</td></tr>
+              <tr><td><span class="col">rl_deficits</span></td><td>Which side of the body has motor deficits, and how severe</td></tr>
+              <tr><td><span class="col">notes</span></td><td>Free-text experimenter/curator notes</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>channels.tsv <span style="font-weight:400; font-family:Georgia,serif; font-style:italic; color:var(--ink-muted); font-size:0.85rem;">(one row per electrode, per recording)</span></h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><span class="col">name</span></td><td>Electrode label, e.g. Fp1, Cz, PO4</td></tr>
+              <tr><td><span class="col">type</span></td><td>Signal type &mdash; always EEG in this dataset</td></tr>
+              <tr><td><span class="col">units</span></td><td>&micro;V for every channel</td></tr>
+              <tr><td><span class="col">low_cutoff / high_cutoff</span></td><td>Hardware filter band applied during recording, in Hz</td></tr>
+              <tr><td><span class="col">description</span></td><td>Always "ElectroEncephaloGram" here</td></tr>
+              <tr><td><span class="col">sampling_frequency</span></td><td>512.0 Hz, matching the recording</td></tr>
+              <tr><td><span class="col">status</span></td><td>"good" or "bad" &mdash; whether the channel was usable</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="example-row">Fp1  EEG  &micro;V  0.0  104.0  ElectroEncephaloGram  512.0  good</div>
+
+        <h3>events.tsv</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><span class="col">onset</span></td><td>Seconds from recording start</td></tr>
+              <tr><td><span class="col">duration</span></td><td>Event length in seconds</td></tr>
+              <tr><td><span class="col">value</span></td><td>Numeric event/trigger code</td></tr>
+              <tr><td><span class="col">sample</span></td><td>Same onset, expressed in samples instead of seconds</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note"><p><strong>In practice:</strong> for the resting task, this file is nearly empty &mdash; one subject's real file contains exactly two rows (a recording-start marker and a single trigger). This is a technical log, not a record of task events. Don't expect rich annotations here the way a task-based study would have them.</p></div>
+
+        <h3>eeg.json (recording sidecar)</h3>
+        <p>Real values from <span class="mono">sub-hc1</span>'s sidecar: <span class="mono">TaskName: "rest"</span>, <span class="mono">Manufacturer: "Biosemi"</span>, <span class="mono">PowerLineFrequency: 60</span>, <span class="mono">SamplingFrequency: 512.0</span>, <span class="mono">EEGChannelCount: 40</span>, <span class="mono">RecordingDuration: ~192s</span>. <span class="mono">EEGReference</span> and <span class="mono">EEGGround</span> are both <span class="mono">"n/a"</span> &mdash; the montage detail simply wasn't documented.</p>
+
+        <h3>What the README adds that the tables don't</h3>
+        <ul class="plain">
+          <li>UPDRS (Parkinson's severity) ratings were collected by trained lab staff, <strong>not a board-certified neurologist</strong> &mdash; the README explicitly asks that analyses built on them carry appropriate uncertainty. Also: no UPDRS scores actually appear in <span class="mono">participants.tsv</span> or any phenotype file at the top level &mdash; despite being mentioned, they weren't found in the structured data.</li>
+          <li>Curators ask to be emailed (<span class="mono">arockhil@uoregon.edu</span>) before any manuscript is submitted using this data, and list three specific papers they want cited.</li>
+          <li>The README explicitly warns against reporting high classification accuracy (e.g. Parkinson's vs. healthy) without cross-validation, calling that use "problematic."</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="eegmat">
+      <p class="kicker">Dataset 2 of 2</p>
+      <div class="ds-block ds2">
+        <div class="ds-head"><h2 style="margin:0">Mental Arithmetic Tasks</h2><span class="ds-id">eegmat</span></div>
+        <p class="lede">Healthy volunteers performing serial subtraction, recorded at Taras Shevchenko National University of Kyiv by Igor Zyma, Sergii Tukaev, and Ivan Seleznov. License: Open Data Commons Attribution v1.0 &mdash; permissive, but requires attribution (unlike ds002778's CC0).</p>
+
+        <h3>subject-info.csv</h3>
+        <p>Real header row, fetched directly &mdash; not paraphrased:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><span class="col">Subject</span></td><td>Matches the <span class="mono">Subject##</span> prefix in filenames</td></tr>
+              <tr><td><span class="col">Age</span></td><td>Years</td></tr>
+              <tr><td><span class="col">Gender</span></td><td>F / M</td></tr>
+              <tr><td><span class="col">Recording year</span></td><td>2010&ndash;2012 across the cohort</td></tr>
+              <tr><td><span class="col">Number of subtractions</span></td><td>How many correct subtractions the subject completed</td></tr>
+              <tr><td><span class="col">Count quality</span></td><td>0 = Group B (poor performer), 1 = Group G (good performer)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="example-row">Subject00, 21, F, 2011, 9.7, 0
+Subject01, 18, F, 2011, 29.35, 1</div>
+
+        <h3>File naming</h3>
+        <p><span class="mono">Subject##_1.edf</span> is the background/baseline recording; <span class="mono">Subject##_2.edf</span> is the same subject during the arithmetic task &mdash; 36 subjects &times; 2 files = 72 EDF files. There is <strong>no <span class="mono">channels.tsv</span> equivalent</strong>: channel names exist only inside each EDF file's own header, not as a separate declared sidecar the way ds002778 provides.</p>
+
+        <h3>Recording setup</h3>
+        <p>Neurocom 23-channel monopolar system (XAI-MEDICA, Ukraine), electrodes placed per the 10&ndash;20 system, all referenced to interconnected ear electrodes. A 50 Hz notch filter removed power-line noise.</p>
+
+        <div class="flag">
+          <span class="flag-label">Worth verifying before writing parsing code</span>
+          <p>The dataset's own README states a <strong>"high-pass filter with a 30 Hz cut-off"</strong> was applied. A high-pass at 30 Hz would remove nearly everything below it &mdash; delta, theta, alpha, and most of beta &mdash; which would be unusual for a study explicitly measuring cognitive workload, where those bands normally matter most. An independent summary of the same dataset's original data-descriptor paper instead describes a 0.5&ndash;60 Hz <em>band-pass</em>. The two don't agree, and I haven't resolved which is correct.</p>
+          <p>Don't hardcode either number into transformation logic &mdash; read the actual passband out of the EDF header at parse time instead of trusting either document.</p>
+        </div>
+
+        <h3>Who's in the cohort</h3>
+        <p>Eligibility required normal or corrected vision, normal color vision, and no diagnosed cognitive or learning impairment. Excluded: psychoactive medication use, drug or alcohol dependency, and psychiatric or neurological complaints &mdash; so unlike ds002778, this is an all-healthy comparison cohort split only by task performance, not diagnosis.</p>
+      </div>
+    </section>
+
+    <section id="remember">
+      <p class="kicker">The gotchas</p>
+      <h2>Things to remember</h2>
+      <p>Everything below is something a first pass through the documentation alone would likely miss.</p>
+      <ul class="remember">
+        <li><span class="tag ds1">ds002778</span><p><span class="mono">events.tsv</span> is essentially empty for the resting task &mdash; two technical marker rows, not annotated task events. Don't design transformation logic around it having real content.</p></li>
+        <li><span class="tag ds1">ds002778</span><p>The <span class="mono">beh/</span> folder and its <span class="mono">task-rest_beh.json</span> sidecar are a BIDS-required placeholder &mdash; the sidecar literally says "there are no trials, this is just a dummy column." Ignore it rather than trying to parse real behavioral data out of it.</p></li>
+        <li><span class="tag both">both</span><p>Sampling rates differ &mdash; 512 Hz vs. 500 Hz. Any statistic compared across the two datasets (e.g. recording duration, event timing) has to be computed in seconds, never in raw sample counts, or the comparison is silently wrong.</p></li>
+        <li><span class="tag both">both</span><p>Channel-naming conventions differ. ds002778's 40-channel BioSemi cap uses extended 10&ndash;20 names (AF3, FC1, FC5, CP1, CP5, PO3, PO4 and similar) that eegmat's 23-channel layout doesn't have. Reconciling channel names across the two sources is real transformation work, not a formality &mdash; exactly the kind of standardization problem described in <span class="mono">PROJECT_PLAN.md</span> &sect;1.</p></li>
+        <li><span class="tag ds2">eegmat</span><p>No per-recording <span class="mono">channels.tsv</span> exists. Channel names have to come from parsing the EDF header itself, which also means there's no separate "declared vs. actual" cross-check the way ds002778 effectively offers.</p></li>
+        <li><span class="tag ds2">eegmat</span><p>The documented filter passband is inconsistent across sources (see the flagged note in the eegmat section above) &mdash; verify against the raw EDF header rather than trusting either number.</p></li>
+        <li><span class="tag ds1">ds002778</span><p>Licensed CC0 (no attribution required) but the curators still ask to be emailed before any publication using the data. Not a legal requirement, but worth honoring in any acknowledgements this project writes.</p></li>
+        <li><span class="tag both">both</span><p>Licenses are both permissive but not identical: CC0 (ds002778) waives essentially all rights, while ODC-BY 1.0 (eegmat) requires attribution. Any "how to cite this data" note in the project needs to handle them differently.</p></li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Companion to the EEG Field Guide (general domain concepts) and <span class="mono">docs/DATASET_SELECTION.md</span> (why these two datasets were chosen). Every fact on this page was read directly from the source files &mdash; OpenNeuro's public S3 bucket and PhysioNet's own README/CSV &mdash; not summarized secondhand.</p>
+</footer>
+
+</body>
+</html>

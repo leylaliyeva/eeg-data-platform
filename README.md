@@ -97,7 +97,7 @@ make test
 | `/config` | Central configuration loader — reads and validates required environment variables, used by every other package. |
 | `/infra` | `docker-compose.yml` and any service init scripts. Defines every infrastructure service the platform depends on. |
 | `/tests` | Automated tests (pytest), mirroring the structure above. |
-| `/docs` | Documentation: [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) (the detailed project plan), [ETL_DESIGN.md](docs/ETL_DESIGN.md) (the thin-DAGs/fat-modules convention `/ingestion`, `/transformation`, and `/orchestration` follow), and [DATASET_SELECTION.md](docs/DATASET_SELECTION.md) (which real OpenNeuro/PhysioNet datasets this project targets, and why). |
+| `/docs` | Documentation: [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) (the detailed project plan), [ETL_DESIGN.md](docs/ETL_DESIGN.md) (the thin-DAGs/fat-modules convention `/ingestion`, `/transformation`, and `/orchestration` follow), [DATASET_SELECTION.md](docs/DATASET_SELECTION.md) (which real OpenNeuro/PhysioNet datasets this project targets, and why), and [DATASET_ANATOMY.html](docs/DATASET_ANATOMY.html) (column-by-column reference for both datasets — open it directly in a browser). |
 
 Each top-level directory currently contains real, importable placeholder modules (not empty `.gitkeep` files) where code will eventually live.
 

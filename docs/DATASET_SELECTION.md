@@ -1,6 +1,6 @@
 # Dataset Selection
 
-Status: decided ahead of Phase 1. No ingestion code exists yet — this records which datasets the project targets and why, verified directly against the source platforms rather than assumed from search results.
+Status: decided ahead of Phase 1. No ingestion code exists yet — this records which datasets the project targets and why, verified directly against the source platforms rather than assumed from search results. For a column-by-column breakdown of what's actually inside each dataset, see [DATASET_ANATOMY.html](DATASET_ANATOMY.html).
 
 ## Methodology
 
