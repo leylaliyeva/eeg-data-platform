@@ -97,7 +97,7 @@ make test
 | `/config` | Central configuration loader — reads and validates required environment variables, used by every other package. |
 | `/infra` | `docker-compose.yml` and any service init scripts. Defines every infrastructure service the platform depends on. |
 | `/tests` | Automated tests (pytest), mirroring the structure above. |
-| `/docs` | Documentation, including [PROJECT_PLAN.md](docs/PROJECT_PLAN.md), the detailed project plan. |
+| `/docs` | Documentation: [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) (the detailed project plan) and [ETL_DESIGN.md](docs/ETL_DESIGN.md) (the thin-DAGs/fat-modules convention `/ingestion`, `/transformation`, and `/orchestration` follow). |
 
 Each top-level directory currently contains real, importable placeholder modules (not empty `.gitkeep` files) where code will eventually live.
 

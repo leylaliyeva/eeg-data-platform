@@ -164,6 +164,8 @@ Each directory is explained in more detail, with its current Phase 0 contents, i
 - **Failure handling:** per-task retries with backoff for transient network failures; a task that exhausts retries fails and blocks only its own downstream tasks — other studies/sources keep going. A **write-audit-publish** pattern is used for transformation: transformed data lands in a staging table first, data quality tests (§7) run against it, and only rows that pass are promoted to the curated tables the serving layer reads from — so a bad ingestion run never corrupts what's already being served.
 - **Expected runtime:** not yet measurable. Given the bounded subset of studies planned for this course project (not full repository mirrors), a full pipeline run is expected to complete in minutes rather than hours; this will be measured and documented once the pipeline exists (Phase 1+).
 
+Airflow is used strictly as an orchestrator here — DAGs schedule and sequence work but contain no extract/transform/load logic themselves. The code-level convention that keeps that true (where logic lives, what a DAG file is allowed to contain, how tasks pass data) is fixed in [ETL_DESIGN.md](ETL_DESIGN.md).
+
 ---
 
 ## 7. Data Quality Plan
