@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.venv/
+venv/
+
+# Environment
+.env
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/profiles.yml
+
+# Airflow
+orchestration/logs/
+airflow.cfg
+airflow.db
+
+# Docker Compose local state
+infra/volumes/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local tooling config (not part of the project deliverable)
+.claude/
