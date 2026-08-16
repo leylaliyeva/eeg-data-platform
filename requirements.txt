@@ -1,0 +1,11 @@
+# Local dev / test dependencies.
+# Airflow itself runs inside the apache/airflow container (see
+# infra/docker-compose.yml) and is intentionally NOT installed here --
+# installing it into a plain venv requires its own constraints file and
+# would conflict with these pins for no benefit at this phase.
+requests==2.34.2
+python-dotenv==1.2.2
+boto3==1.43.72
+pytest==9.1.1
+dbt-core==1.11.13
+dbt-postgres==1.11.0
