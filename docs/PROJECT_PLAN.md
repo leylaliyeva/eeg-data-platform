@@ -94,6 +94,21 @@ flowchart LR
 
 This is a **batch** architecture — EEG recordings are treated as static, already-published research files to pull on demand, not a live acquisition feed, so no streaming/message-queue component is included.
 
+**Repository layout (maps 1:1 onto the components above):**
+
+| Architecture component | Repository directory |
+|---|---|
+| Ingestion jobs | `/ingestion` |
+| Transformation — parsing | `/transformation` |
+| Transformation — modeling | `/dbt` |
+| Orchestration (Airflow DAGs) | `/orchestration/dags` |
+| Raw storage, warehouse, and every other infra service | `/infra` (`docker-compose.yml`) |
+| Cross-cutting configuration | `/config` |
+| Automated tests | `/tests` |
+| Documentation | `/docs` |
+
+Each directory is explained in more detail, with its current Phase 0 contents, in [README.md](../README.md#project-structure).
+
 ---
 
 ## 4. Tech Stack Table
